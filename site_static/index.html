@@ -8,6 +8,67 @@
 	<link rel="Stylesheet" href="Cubemap.css" type="text/css">
 </head>
 
+
+
+<script id="panospherevertshader" type="x-shader/x-vertex">
+	uniform sampler2D Texture;
+	varying vec2 vUv;
+	uniform float PanoTop;
+	uniform float PanoBottom;
+	uniform float PanoLeft;
+	uniform float PanoRight;
+	
+	void main()
+	{
+		vUv = uv;
+		gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+	}
+</script>
+
+
+<script id="panospherefragshader" type="x-shader/x-frag">
+	varying vec2 vUv;
+	uniform sampler2D Texture;
+	uniform float PanoTop;
+	uniform float PanoBottom;
+	uniform float PanoLeft;
+	uniform float PanoRight;
+	
+	float GetTime(float Value,float Min,float Max)
+	{
+		return (Value-Min) / (Max-Min);
+	}
+	
+	void main()
+	{
+		vec2 uv = vUv;
+		float UvLeft = -PanoLeft;
+		float UvRight = PanoRight;
+		float UvTop = -PanoTop;
+		float UvBottom = PanoBottom;
+		
+		//uv.x = (uv.x * (UvRight - UvLeft) );
+		//uv.y = (uv.y * (UvBottom - UvTop) );
+		
+		//	panoleft -> 0
+		//	panoright -> 1
+		uv.x = GetTime( uv.x, PanoLeft, PanoRight );
+		uv.y = GetTime( uv.y, 1.0-PanoBottom, 1.0-PanoTop );
+		
+		gl_FragColor = texture2D( Texture, uv );
+		if ( uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 )
+		{
+			gl_FragColor = vec4( 0.0, 0.0, 0.0, 0.0 );
+			discard;
+		}
+		//gl_FragColor.xy += vUv.xy;
+		//gl_FragColor.xy *= 0.5;
+	//	gl_FragColor = vec4( vUv.x, vUv.y, 1.0, 1.0 );
+		gl_FragColor.w = 1.0;
+	}
+</script>
+
+
 <script id="postfillvertshader" type="x-shader/x-vertex">
 	varying vec2 vUv;
 	void main()
@@ -1021,6 +1082,14 @@ function LoadLocalPano($Config,$Filename)
 	$Meta.assets = new Array();
 	
 	var $AssetMeta = {};
+	
+
+	$Config.mPanoTop = 0.3;
+	$Config.mPanoBottom = 1.0;
+	$Config.mPanoLeft = 0.3;
+	$Config.mPanoRight = 0.7;
+	
+
 
 	$AssetMeta.Layout = 'equirect';
 //	$AssetMeta.Filename = $LocalUrlPrefix + $Filename;
@@ -1029,7 +1098,7 @@ function LoadLocalPano($Config,$Filename)
 	$AssetMeta.Format = 'mp4';
 	$AssetMeta.Codec = 'h264';
 	$AssetMeta.BitRate = '1000k';
-	alert("load local pano " + $Filename);
+	//alert("load local pano " + $Filename);
 	$Meta.assets.push($AssetMeta);
 	NewPano( $Config, $Meta );
 	
@@ -1262,13 +1331,38 @@ function NewPano($Config,$MetaAsset)
 					geometry.applyMatrix( mtx );
 
 					//	load default texture
-					var Texture = THREE.ImageUtils.loadTexture( GetDefaultPanoFilename(), new THREE.UVMapping() );
+					var $Texture = THREE.ImageUtils.loadTexture( GetDefaultPanoFilename(), new THREE.UVMapping() );
+					
+					
+					
+					var uniforms =
+					{
+						Texture: { type: "t", value: $Texture },
+						PanoTop: { type: "f", value: $Config.mPanoTop },
+						PanoBottom: { type: "f", value: $Config.mPanoBottom },
+						PanoLeft: { type: "f", value: $Config.mPanoLeft },
+						PanoRight: { type: "f", value: $Config.mPanoRight },
+
+					};
+					
+					var $VertShader = GetElement('panospherevertshader').innerText;
+					var $FragShader = GetElement('panospherefragshader').innerText;
+
+
+					var material = new THREE.ShaderMaterial( {
+															uniforms: 		uniforms,
+															vertexShader:	$VertShader,
+															fragmentShader: $FragShader,
+															});
+															
+					$gPanoMat = material;
+					/*
 					var material = new THREE.MeshBasicMaterial( {
-															   map: Texture,
+															   map: $Texture,
 															   color: "white",
 															   wireframe: false
 											   } );
-					
+					*/
 		
 					$Config.mMesh = new THREE.Mesh( geometry, material );
 					$Config.mScene.add( $Config.mMesh );
@@ -1336,6 +1430,22 @@ function NewPano($Config,$MetaAsset)
 				
 			}
 
+function UpdateDebugUniform($Variable,$Uniform)
+{
+	//	initialise
+	if ( $Variable === false )
+		$Variable = $Uniform.value;
+
+	$Uniform.value = $Variable;
+	$Uniform.needsUpdate = true;
+	return $Variable;
+}
+
+var $gPanoMat = false;
+var gPanoTop = false;
+var gPanoLeft = false;
+var gPanoRight = false;
+var gPanoBottom = false;
 
 var gDepthNear = false;
 var gDepthFar = false;
@@ -1373,6 +1483,14 @@ var gPointCloud = null;
 				
 				if ( gPositionScalar === false )	gPositionScalar = $Config.mPositionScalar;
 				$Config.mPositionScalar = gPositionScalar;
+
+				if ( $gPanoMat )
+				{
+					gPanoTop = UpdateDebugUniform( gPanoTop, $gPanoMat.uniforms.PanoTop );
+					gPanoLeft = UpdateDebugUniform( gPanoLeft, $gPanoMat.uniforms.PanoLeft );
+					gPanoRight = UpdateDebugUniform( gPanoRight, $gPanoMat.uniforms.PanoRight );
+					gPanoBottom = UpdateDebugUniform( gPanoBottom, $gPanoMat.uniforms.PanoBottom );
+				}
 
 				Render($Config);
 			}
@@ -1465,23 +1583,50 @@ function MakeLocalBox($Config)
 				//console_logStack();
 				var $Material = $Config.mMesh.material;
 				
-				//	already assigned to this asset, so just update it
-				if ( $Material.map.image == $Asset.mAsset )
+				//	simple map texture
+				if ( $Material.map )
 				{
-					//console.log("refreshing asset");
-					$Material.map.needsUpdate = true;
+					//	already assigned to this asset, so just update it
+					if ( $Material.map.image == $Asset.mAsset )
+					{
+						//console.log("refreshing asset");
+						$Material.map.needsUpdate = true;
+					}
+					else
+					{
+						//console.log("new texture");
+						var $Texture = new THREE.Texture( $Asset.mAsset, new THREE.UVMapping() );
+						$Texture.generateMipmaps = false;
+						$Texture.minFilter = THREE.LinearFilter;
+						$Texture.magFilter = THREE.LinearFilter;
+						$Texture.needsUpdate = true;
+						
+						$Material.map = $Texture;
+						$Material.needsUpdate = true;
+					}
+				}
+				else if ( $Material.uniforms )
+				{
+					if ( $Material.uniforms.Texture.image == $Asset.mAsset )
+					{
+						$Material.uniforms.Texture.needsUpdate = true;
+					}
+					else
+					{
+						var $Texture = new THREE.Texture( $Asset.mAsset, new THREE.UVMapping() );
+						$Texture.generateMipmaps = false;
+						$Texture.minFilter = THREE.LinearFilter;
+						$Texture.magFilter = THREE.LinearFilter;
+						$Texture.needsUpdate = true;
+						$Material.uniforms.Texture.value = $Texture;
+						$Material.uniforms.Texture.needsUpdate = true;
+					}
+					
+					$Material.needsUpdate = true;
 				}
 				else
 				{
-					//console.log("new texture");
-					var $Texture = new THREE.Texture( $Asset.mAsset, new THREE.UVMapping() );
-					$Texture.generateMipmaps = false;
-					$Texture.minFilter = THREE.LinearFilter;
-					$Texture.magFilter = THREE.LinearFilter;
-					$Texture.needsUpdate = true;
-					
-					$Material.map = $Texture;
-					$Material.needsUpdate = true;
+					console.log("failed to update material: ", $Material );
 				}
 			}
 			
@@ -1530,10 +1675,11 @@ function MakeLocalBox($Config)
 	
 		if ( $Config1.mRenderMode != RENDERMODE_NONE )
 		{
+			LoadPano( $Config1 );
 			InitWebgl( $Config1 );
 
 			//	load user's required pano
-			LoadPano( $Config1 );
+			//LoadPano( $Config1 );
 			$Configs.push($Config1);
 			
 			MakeLocalBox( $Config1);

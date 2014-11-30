@@ -27,6 +27,11 @@ function SoyConfig($RenderMode,$GeoMode)
 	this.mEnableDebugCamera = false;
 	
 	this.mPositionScalar = 4.0;
+	
+	this.mPanoTop = 0.0;
+	this.mPanoBottom = 1.0;
+	this.mPanoLeft = 0.0;
+	this.mPanoRight = 1.0;
 
 	//	gr: fov ~100 has clipping issues in css mode
 	
