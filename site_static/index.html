@@ -427,6 +427,8 @@ void main()
 
 <script>
 	
+	var $LocalPanoPrefix = 'local,';
+	
 WebGLChainRenderer.prototype = new THREE.WebGLRenderer();
 function WebGLChainRenderer()
 {
@@ -829,7 +831,7 @@ function OnClickedRiftMode()
 				//	panopo.ly/#name
 				var Name = GetHashParam(0);
 				if ( !Name )
-					Name = "Apartment11";
+					Name = $DefaultPano;
 
 				var $LatLon = MatchLatLonString( window.location.hash, '#' );
 				if ( $LatLon !== false )
@@ -1008,6 +1010,31 @@ function LoadGoogleStreetViewDepth($Json)
 }
 		
 		
+		
+		
+
+
+function LoadLocalPano($Config,$Filename)
+{
+	var $Meta = {};
+	$Meta.isVideo = false;
+	$Meta.assets = new Array();
+	
+	var $AssetMeta = {};
+
+	$AssetMeta.Layout = 'equirect';
+//	$AssetMeta.Filename = $LocalUrlPrefix + $Filename;
+//	$AssetMeta.Filename = $LocalUrlPrefix + "http://image.panopo.ly/stadium1024_h264.mp4";
+	$AssetMeta.Filename = "stadium1024_h264.mp4";
+	$AssetMeta.Format = 'mp4';
+	$AssetMeta.Codec = 'h264';
+	$AssetMeta.BitRate = '1000k';
+	alert("load local pano " + $Filename);
+	$Meta.assets.push($AssetMeta);
+	NewPano( $Config, $Meta );
+	
+	return true;
+}
 
 
 
@@ -1055,6 +1082,11 @@ function LoadPano($Config)
 	if ( $PanoName == false )
 		return false;
 		
+	if ( $PanoName.startsWith($LocalPanoPrefix) )
+	{
+		return LoadLocalPano($Config,$PanoName.substr($LocalPanoPrefix.length));
+	}
+	
 	if ( $PanoName.startsWith($GoogleStreetViewPrefix) )
 	{
 		return LoadGoogleStreetViewPano($Config,$PanoName.substr($GoogleStreetViewPrefix.length));
@@ -1213,6 +1245,7 @@ function NewPano($Config,$MetaAsset)
 
 				if ( $Config.mRenderMode != RENDERMODE_CSS )
 				{
+					
 					var WidthSegments = 60;
 					var HeightSegments = 40;
 					if ( IsMobile() )
@@ -1391,6 +1424,20 @@ var gPointCloud = null;
 				}
 				
 			}
+
+
+
+function MakeLocalBox($Config)
+{
+	
+	//	make a cube asset
+	var $Size = $Config.mFaceResolution/10;
+	var $Cube = new THREE.Mesh( new THREE.BoxGeometry( $Size, $Size, $Size ), new THREE.MeshNormalMaterial() );
+	$Cube.position.set( 1, 0, $Config.mFaceResolution / 4 );
+	$Config.mScene.add( $Cube );
+	
+
+}
 	
 	function LoadPointCloud($Asset,$Config)
 	{
@@ -1489,6 +1536,7 @@ var gPointCloud = null;
 			LoadPano( $Config1 );
 			$Configs.push($Config1);
 			
+			MakeLocalBox( $Config1);
 			
 			//	make a second config
 			if ( HasHashParam('dual') && GetElement("container_dual") )

@@ -1,5 +1,7 @@
 var $GoogleStreetViewPrefix = 'gsv,';
+var $LocalPanoPrefix = 'local,';
 
+var $DefaultPano = $LocalPanoPrefix + 'stadium1024_h264.mp4';
 
 function SoyPano($PanoName,$Config,$OnNewImage,$OnMetaFailed,$DoLoad)
 {
