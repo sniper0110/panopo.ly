@@ -566,7 +566,6 @@ SoyAsset_Video.prototype.Load = function()
 
 SoyAsset_Video.prototype.OnLoad = function($Event)
 {
-	alert('video on load');
 	//	gr: swap ownership?
 	this.mAsset = this.mVideo;
 	assert( this.IsLoaded(), "Loaded state wrong" );
@@ -575,7 +574,6 @@ SoyAsset_Video.prototype.OnLoad = function($Event)
 
 SoyAsset_Video.prototype.OnError = function($Event)
 {
-	alert('video on error');
 	console.log($Event);
 	if ( this.IsLoaded() )
 		this.Stop();
