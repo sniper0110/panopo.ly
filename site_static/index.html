@@ -488,7 +488,6 @@ void main()
 
 <script>
 	
-	var $LocalPanoPrefix = 'local,';
 	
 WebGLChainRenderer.prototype = new THREE.WebGLRenderer();
 function WebGLChainRenderer()
@@ -1075,7 +1074,7 @@ function LoadGoogleStreetViewDepth($Json)
 		
 
 
-function LoadLocalPano($Config,$Filename)
+function LoadYouFootPano($Config,$Filename)
 {
 	var $Meta = {};
 	$Meta.isVideo = false;
@@ -1094,7 +1093,7 @@ function LoadLocalPano($Config,$Filename)
 	$AssetMeta.Layout = 'equirect';
 //	$AssetMeta.Filename = $LocalUrlPrefix + $Filename;
 //	$AssetMeta.Filename = $LocalUrlPrefix + "http://image.panopo.ly/stadium1024_h264.mp4";
-	$AssetMeta.Filename = "stadium1024_h264.mp4";
+	$AssetMeta.Filename = $Filename ? $Filename : "stadium1024_h264.mp4";
 	$AssetMeta.Format = 'mp4';
 	$AssetMeta.Codec = 'h264';
 	$AssetMeta.BitRate = '1000k';
@@ -1154,9 +1153,9 @@ function LoadPano($Config)
 	if ( $PanoName == false )
 		return false;
 		
-	if ( $PanoName.startsWith($LocalPanoPrefix) )
+	if ( $PanoName.startsWith($YouFootPanoPrefix) )
 	{
-		return LoadLocalPano($Config,$PanoName.substr($LocalPanoPrefix.length));
+		return LoadYouFootPano($Config,$PanoName.substr($YouFootPanoPrefix.length));
 	}
 	
 	if ( $PanoName.startsWith($GoogleStreetViewPrefix) )
