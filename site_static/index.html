@@ -8,6 +8,67 @@
 	<link rel="Stylesheet" href="Cubemap.css" type="text/css">
 </head>
 
+
+
+<script id="panospherevertshader" type="x-shader/x-vertex">
+	uniform sampler2D Texture;
+	varying vec2 vUv;
+	uniform float PanoTop;
+	uniform float PanoBottom;
+	uniform float PanoLeft;
+	uniform float PanoRight;
+	
+	void main()
+	{
+		vUv = uv;
+		gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+	}
+</script>
+
+
+<script id="panospherefragshader" type="x-shader/x-frag">
+	varying vec2 vUv;
+	uniform sampler2D Texture;
+	uniform float PanoTop;
+	uniform float PanoBottom;
+	uniform float PanoLeft;
+	uniform float PanoRight;
+	
+	float GetTime(float Value,float Min,float Max)
+	{
+		return (Value-Min) / (Max-Min);
+	}
+	
+	void main()
+	{
+		vec2 uv = vUv;
+		float UvLeft = -PanoLeft;
+		float UvRight = PanoRight;
+		float UvTop = -PanoTop;
+		float UvBottom = PanoBottom;
+		
+		//uv.x = (uv.x * (UvRight - UvLeft) );
+		//uv.y = (uv.y * (UvBottom - UvTop) );
+		
+		//	panoleft -> 0
+		//	panoright -> 1
+		uv.x = GetTime( uv.x, PanoLeft, PanoRight );
+		uv.y = GetTime( uv.y, 1.0-PanoBottom, 1.0-PanoTop );
+		
+		gl_FragColor = texture2D( Texture, uv );
+		if ( uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 )
+		{
+			gl_FragColor = vec4( 0.0, 0.0, 0.0, 0.0 );
+			discard;
+		}
+		//gl_FragColor.xy += vUv.xy;
+		//gl_FragColor.xy *= 0.5;
+	//	gl_FragColor = vec4( vUv.x, vUv.y, 1.0, 1.0 );
+		gl_FragColor.w = 1.0;
+	}
+</script>
+
+
 <script id="postfillvertshader" type="x-shader/x-vertex">
 	varying vec2 vUv;
 	void main()
@@ -427,6 +488,7 @@ void main()
 
 <script>
 	
+	
 WebGLChainRenderer.prototype = new THREE.WebGLRenderer();
 function WebGLChainRenderer()
 {
@@ -829,7 +891,7 @@ function OnClickedRiftMode()
 				//	panopo.ly/#name
 				var Name = GetHashParam(0);
 				if ( !Name )
-					Name = "Apartment11";
+					Name = $DefaultPano;
 
 				var $LatLon = MatchLatLonString( window.location.hash, '#' );
 				if ( $LatLon !== false )
@@ -1008,6 +1070,42 @@ function LoadGoogleStreetViewDepth($Json)
 }
 		
 		
+		
+		
+
+
+function LoadYouFootPano($Config,$Filename)
+{
+	var $Meta = {};
+	$Meta.isVideo = false;
+	$Meta.assets = new Array();
+	
+	var $AssetMeta = {};
+	
+
+	$Config.mPanoTop = 0.3;
+	$Config.mPanoBottom = 1.0;
+	$Config.mPanoLeft = 0.3;
+	$Config.mPanoRight = 0.7;
+	
+
+
+	$AssetMeta.Layout = 'equirect';
+//	$AssetMeta.Filename = $LocalUrlPrefix + $Filename;
+//	$AssetMeta.Filename = $LocalUrlPrefix + "http://image.panopo.ly/stadium1024_h264.mp4";
+	$AssetMeta.Filename = $Filename ? $Filename : "stadium1024_h264.mp4";
+	$AssetMeta.Format = 'mp4';
+	$AssetMeta.Codec = 'h264';
+	$AssetMeta.BitRate = '1000k';
+	//alert("load local pano " + $Filename);
+	$Meta.assets.push($AssetMeta);
+	NewPano( $Config, $Meta );
+	
+//	MakeLocalBox( $Config1);
+
+
+	return true;
+}
 
 
 
@@ -1055,6 +1153,11 @@ function LoadPano($Config)
 	if ( $PanoName == false )
 		return false;
 		
+	if ( $PanoName.startsWith($YouFootPanoPrefix) )
+	{
+		return LoadYouFootPano($Config,$PanoName.substr($YouFootPanoPrefix.length));
+	}
+	
 	if ( $PanoName.startsWith($GoogleStreetViewPrefix) )
 	{
 		return LoadGoogleStreetViewPano($Config,$PanoName.substr($GoogleStreetViewPrefix.length));
@@ -1213,6 +1316,7 @@ function NewPano($Config,$MetaAsset)
 
 				if ( $Config.mRenderMode != RENDERMODE_CSS )
 				{
+					
 					var WidthSegments = 60;
 					var HeightSegments = 40;
 					if ( IsMobile() )
@@ -1229,13 +1333,38 @@ function NewPano($Config,$MetaAsset)
 					geometry.applyMatrix( mtx );
 
 					//	load default texture
-					var Texture = THREE.ImageUtils.loadTexture( GetDefaultPanoFilename(), new THREE.UVMapping() );
+					var $Texture = THREE.ImageUtils.loadTexture( GetDefaultPanoFilename(), new THREE.UVMapping() );
+					
+					
+					
+					var uniforms =
+					{
+						Texture: { type: "t", value: $Texture },
+						PanoTop: { type: "f", value: $Config.mPanoTop },
+						PanoBottom: { type: "f", value: $Config.mPanoBottom },
+						PanoLeft: { type: "f", value: $Config.mPanoLeft },
+						PanoRight: { type: "f", value: $Config.mPanoRight },
+
+					};
+					
+					var $VertShader = GetElement('panospherevertshader').innerText;
+					var $FragShader = GetElement('panospherefragshader').innerText;
+
+
+					var material = new THREE.ShaderMaterial( {
+															uniforms: 		uniforms,
+															vertexShader:	$VertShader,
+															fragmentShader: $FragShader,
+															});
+															
+					$gPanoMat = material;
+					/*
 					var material = new THREE.MeshBasicMaterial( {
-															   map: Texture,
+															   map: $Texture,
 															   color: "white",
 															   wireframe: false
 											   } );
-					
+					*/
 		
 					$Config.mMesh = new THREE.Mesh( geometry, material );
 					$Config.mScene.add( $Config.mMesh );
@@ -1303,6 +1432,22 @@ function NewPano($Config,$MetaAsset)
 				
 			}
 
+function UpdateDebugUniform($Variable,$Uniform)
+{
+	//	initialise
+	if ( $Variable === false )
+		$Variable = $Uniform.value;
+
+	$Uniform.value = $Variable;
+	$Uniform.needsUpdate = true;
+	return $Variable;
+}
+
+var $gPanoMat = false;
+var gPanoTop = false;
+var gPanoLeft = false;
+var gPanoRight = false;
+var gPanoBottom = false;
 
 var gDepthNear = false;
 var gDepthFar = false;
@@ -1340,6 +1485,14 @@ var gPointCloud = null;
 				
 				if ( gPositionScalar === false )	gPositionScalar = $Config.mPositionScalar;
 				$Config.mPositionScalar = gPositionScalar;
+
+				if ( $gPanoMat )
+				{
+					gPanoTop = UpdateDebugUniform( gPanoTop, $gPanoMat.uniforms.PanoTop );
+					gPanoLeft = UpdateDebugUniform( gPanoLeft, $gPanoMat.uniforms.PanoLeft );
+					gPanoRight = UpdateDebugUniform( gPanoRight, $gPanoMat.uniforms.PanoRight );
+					gPanoBottom = UpdateDebugUniform( gPanoBottom, $gPanoMat.uniforms.PanoBottom );
+				}
 
 				Render($Config);
 			}
@@ -1391,7 +1544,77 @@ var gPointCloud = null;
 				}
 				
 			}
+
+
+function AddOBJ(Params)
+{
+	/*
+	var Object3D = false
+	var OBJLoaded = false
 	
+	var manager = new THREE.LoadingManager();
+	
+	
+	manager.onProgress = function ( item, loaded, total ) {
+		console.log( item, loaded, total );
+		OBJLoaded = loaded
+		
+	}
+	
+	
+	var loader = new THREE.OBJLoader(manager);
+	
+	// Need to catch when the obj has been loaded
+	loader.load( Params.File ,  function ( object ) {
+				
+				// Need to traverse the objects in the obj
+				object.traverse(function (child) {
+								if ( child instanceof THREE.Mesh ) {
+								child.castShadow = true;
+								child.receiveShadow = true;
+								child.material = Params.Material;
+								}
+								} );
+				
+				// If scale defined then scale the object
+				if (Params.Scale) {
+				object.scale.set(Params.Scale, Params.Scale, Params.Scale);
+				}
+				
+				if (Params.Position) {
+				object.position.x(Params.Position[0]);
+				object.position.y(Params.Position[1]);
+				object.position.z(Params.Position[2]);
+				}
+				
+				// oMaxRotate = object.rotation.x =  (- Math.PI / 2);
+				// object.scale.set(Scale, Scale, Scale);
+				// object.position.set(30,25,50);
+				
+				Params.Parent.add( object );
+	 
+				loader.Object = object
+				
+				
+				});
+*/
+}
+
+
+function MakeLocalBox($Config)
+{
+	//	load
+	//Room_v001.obj
+	
+	//	make a cube asset
+	var $Size = $Config.mFaceResolution/10;
+	var $Cube = new THREE.Mesh( new THREE.BoxGeometry( $Size, $Size, $Size ), new THREE.MeshNormalMaterial() );
+	$Cube.position.set( 1, 0, $Config.mFaceResolution / 4 );
+	$Config.mScene.add( $Cube );
+	
+
+}
+
 	function LoadPointCloud($Asset,$Config)
 	{
 		if ( $Asset.mMeta.Format != 'GsvPointCloud' )
@@ -1418,23 +1641,50 @@ var gPointCloud = null;
 				//console_logStack();
 				var $Material = $Config.mMesh.material;
 				
-				//	already assigned to this asset, so just update it
-				if ( $Material.map.image == $Asset.mAsset )
+				//	simple map texture
+				if ( $Material.map )
 				{
-					//console.log("refreshing asset");
-					$Material.map.needsUpdate = true;
+					//	already assigned to this asset, so just update it
+					if ( $Material.map.image == $Asset.mAsset )
+					{
+						//console.log("refreshing asset");
+						$Material.map.needsUpdate = true;
+					}
+					else
+					{
+						//console.log("new texture");
+						var $Texture = new THREE.Texture( $Asset.mAsset, new THREE.UVMapping() );
+						$Texture.generateMipmaps = false;
+						$Texture.minFilter = THREE.LinearFilter;
+						$Texture.magFilter = THREE.LinearFilter;
+						$Texture.needsUpdate = true;
+						
+						$Material.map = $Texture;
+						$Material.needsUpdate = true;
+					}
+				}
+				else if ( $Material.uniforms )
+				{
+					if ( $Material.uniforms.Texture.image == $Asset.mAsset )
+					{
+						$Material.uniforms.Texture.needsUpdate = true;
+					}
+					else
+					{
+						var $Texture = new THREE.Texture( $Asset.mAsset, new THREE.UVMapping() );
+						$Texture.generateMipmaps = false;
+						$Texture.minFilter = THREE.LinearFilter;
+						$Texture.magFilter = THREE.LinearFilter;
+						$Texture.needsUpdate = true;
+						$Material.uniforms.Texture.value = $Texture;
+						$Material.uniforms.Texture.needsUpdate = true;
+					}
+					
+					$Material.needsUpdate = true;
 				}
 				else
 				{
-					//console.log("new texture");
-					var $Texture = new THREE.Texture( $Asset.mAsset, new THREE.UVMapping() );
-					$Texture.generateMipmaps = false;
-					$Texture.minFilter = THREE.LinearFilter;
-					$Texture.magFilter = THREE.LinearFilter;
-					$Texture.needsUpdate = true;
-					
-					$Material.map = $Texture;
-					$Material.needsUpdate = true;
+					console.log("failed to update material: ", $Material );
 				}
 			}
 			
@@ -1483,10 +1733,11 @@ var gPointCloud = null;
 	
 		if ( $Config1.mRenderMode != RENDERMODE_NONE )
 		{
+			LoadPano( $Config1 );
 			InitWebgl( $Config1 );
 
 			//	load user's required pano
-			LoadPano( $Config1 );
+			//LoadPano( $Config1 );
 			$Configs.push($Config1);
 			
 			

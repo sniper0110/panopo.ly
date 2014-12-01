@@ -23,10 +23,15 @@ function SoyConfig($RenderMode,$GeoMode)
 	this.mFov = 90;
 	this.mSeperation = 0.06;
 	this.mSplitEnabled = true;
-	this.mVideoEnabled = false;
+	this.mVideoEnabled = true;
 	this.mEnableDebugCamera = false;
 	
 	this.mPositionScalar = 4.0;
+	
+	this.mPanoTop = 0.0;
+	this.mPanoBottom = 1.0;
+	this.mPanoLeft = 0.0;
+	this.mPanoRight = 1.0;
 
 	//	gr: fov ~100 has clipping issues in css mode
 	
@@ -95,12 +100,9 @@ SoyConfig.prototype.SupportsAssetMeta = function($AssetMeta)
 			if ( IsMobile() )
 				return false;
 			
-			var $Video = document.createElement('video');
-			var $VideoTypeString = 'video/' + $Type + ';codecs="' + $Codec + '"';
-			var $CanPlay = $Video.canPlayType($VideoTypeString);
-			if ( $CanPlay == "" )
+			if ( !CanPlayVideo( $Type, $Codec ) )
 				return false;
-		}
+					}
 	}
 
 
