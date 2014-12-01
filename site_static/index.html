@@ -1102,6 +1102,9 @@ function LoadLocalPano($Config,$Filename)
 	$Meta.assets.push($AssetMeta);
 	NewPano( $Config, $Meta );
 	
+//	MakeLocalBox( $Config1);
+
+
 	return true;
 }
 
@@ -1544,9 +1547,65 @@ var gPointCloud = null;
 			}
 
 
+function AddOBJ(Params)
+{
+	/*
+	var Object3D = false
+	var OBJLoaded = false
+	
+	var manager = new THREE.LoadingManager();
+	
+	
+	manager.onProgress = function ( item, loaded, total ) {
+		console.log( item, loaded, total );
+		OBJLoaded = loaded
+		
+	}
+	
+	
+	var loader = new THREE.OBJLoader(manager);
+	
+	// Need to catch when the obj has been loaded
+	loader.load( Params.File ,  function ( object ) {
+				
+				// Need to traverse the objects in the obj
+				object.traverse(function (child) {
+								if ( child instanceof THREE.Mesh ) {
+								child.castShadow = true;
+								child.receiveShadow = true;
+								child.material = Params.Material;
+								}
+								} );
+				
+				// If scale defined then scale the object
+				if (Params.Scale) {
+				object.scale.set(Params.Scale, Params.Scale, Params.Scale);
+				}
+				
+				if (Params.Position) {
+				object.position.x(Params.Position[0]);
+				object.position.y(Params.Position[1]);
+				object.position.z(Params.Position[2]);
+				}
+				
+				// oMaxRotate = object.rotation.x =  (- Math.PI / 2);
+				// object.scale.set(Scale, Scale, Scale);
+				// object.position.set(30,25,50);
+				
+				Params.Parent.add( object );
+	 
+				loader.Object = object
+				
+				
+				});
+*/
+}
+
 
 function MakeLocalBox($Config)
 {
+	//	load
+	//Room_v001.obj
 	
 	//	make a cube asset
 	var $Size = $Config.mFaceResolution/10;
@@ -1556,7 +1615,7 @@ function MakeLocalBox($Config)
 	
 
 }
-	
+
 	function LoadPointCloud($Asset,$Config)
 	{
 		if ( $Asset.mMeta.Format != 'GsvPointCloud' )
@@ -1682,7 +1741,6 @@ function MakeLocalBox($Config)
 			//LoadPano( $Config1 );
 			$Configs.push($Config1);
 			
-			MakeLocalBox( $Config1);
 			
 			//	make a second config
 			if ( HasHashParam('dual') && GetElement("container_dual") )
