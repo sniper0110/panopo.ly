@@ -1579,9 +1579,11 @@ function AddOBJ($Url,$TextureUrl,$Scene,$Matrix)
 								if ( child instanceof THREE.Mesh ) {
 							
 								
-								
-								
-								
+								var mat = new THREE.MeshLambertMaterial({
+																		color: 'white'
+																		});
+								child.material = mat;
+								/*
 								var imageloader = new THREE.ImageLoader( manager );
 								imageloader.crossOrigin = null;
 								imageloader.load( $TextureUrl, function ( image ) {
@@ -1589,12 +1591,18 @@ function AddOBJ($Url,$TextureUrl,$Scene,$Matrix)
 												 var texture = new THREE.Texture();
 												 texture.image = image;
 												 texture.needsUpdate = true;
-												 child.material.map = texture;
+												 
+												 
+												
+								
+								
+								child.material = mat;
+												 //child.material.map = texture;
 												 console.log(texture);
 												 } );
 
 								
-								
+								*/
 								}
 								
 								} );
@@ -1678,6 +1686,13 @@ function MakeLocalBox($Config)
 	$Config.mScene.add( $Cube );
 */
 
+var ambientLight = new THREE.AmbientLight(0x000044);
+$Config.mScene.add(ambientLight);
+
+// directional lighting
+var directionalLight = new THREE.DirectionalLight(0xffffff);
+directionalLight.position.set(1, 1, 1).normalize();
+$Config.mScene.add(directionalLight);
 }
 
 	function LoadPointCloud($Asset,$Config)
