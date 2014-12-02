@@ -1082,7 +1082,7 @@ function LoadYouFootPano($Config,$Filename)
 	$Meta.assets = new Array();
 	
 	var $AssetMeta = {};
-	
+
 
 	$Config.mPanoTop = 0.215;
 	$Config.mPanoBottom = 0.75;
@@ -1819,7 +1819,11 @@ $Config.mScene.add(directionalLight);
 			//	load user's required pano
 			//LoadPano( $Config1 );
 			$Configs.push($Config1);
-			MakeLocalBox( $Config1 );
+			
+			
+			var $PanoName = GetPanoName();
+			if ( $PanoName.startsWith($YouFootPanoPrefix) )
+				MakeLocalBox( $Config1 );
 
 			
 			//	make a second config
