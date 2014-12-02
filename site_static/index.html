@@ -404,6 +404,7 @@ void main()
 		<script src="threejs/renderers/CSS3DRenderer.js"></script>
 		<script src="threejs/effects/StereoEffect.js"></script>
 		<script src="threejs/controls/OrbitControls.js"></script>
+		<script src="threejs/OBJLoader.js"></script>
 
 
 <!--
@@ -1099,7 +1100,6 @@ function LoadYouFootPano($Config,$Filename)
 	$Meta.assets.push($AssetMeta);
 	NewPano( $Config, $Meta );
 	
-//	MakeLocalBox( $Config1);
 
 
 	return true;
@@ -1547,8 +1547,64 @@ var gPointCloud = null;
 			}
 
 
-function AddOBJ(Params)
+function AddOBJ($Url,$TextureUrl,$Scene,$Matrix)
 {
+	var manager = new THREE.LoadingManager();
+	manager.onProgress = function ( item, loaded, total ) {
+		
+		console.log( item, loaded, total );
+		
+	};
+	
+	
+	var onError = function ( xhr )
+	{
+		alert("error loading");
+	};
+	
+	var onProgress = function ()
+	{
+		
+	};
+	
+	
+
+
+	var objloader = new THREE.OBJLoader( manager );
+	objloader.crossOrigin = null;
+	objloader.load( $Url, function ( object ) {
+				
+				object.traverse( function ( child ) {
+								
+								if ( child instanceof THREE.Mesh ) {
+							
+								
+								
+								
+								
+								var imageloader = new THREE.ImageLoader( manager );
+								imageloader.crossOrigin = null;
+								imageloader.load( $TextureUrl, function ( image ) {
+												 
+												 var texture = new THREE.Texture();
+												 texture.image = image;
+												 texture.needsUpdate = true;
+												 child.material.map = texture;
+												 console.log(texture);
+												 } );
+
+								
+								
+								}
+								
+								} );
+				
+				object.applyMatrix($Matrix);
+				$Scene.add( object );
+				
+				}, onProgress, onError );
+
+
 	/*
 	var Object3D = false
 	var OBJLoaded = false
@@ -1604,15 +1660,23 @@ function AddOBJ(Params)
 
 function MakeLocalBox($Config)
 {
+	var Scale = 0.6;
+	var mtx = new THREE.Matrix4().makeScale( Scale, Scale, Scale );
+	var rotMtx = new THREE.Matrix4().makeRotationY( Math.DegreesToRadians(180) );
+	mtx.multiply( rotMtx );
+	mtx.setPosition( new THREE.Vector3( 0.0, -100.0, 80.0 ) );
+	
 	//	load
 	//Room_v001.obj
+	AddOBJ("http://panopo.ly/youfoot/Room_v001.obj","http://panopo.ly/youfoot/Room_Diffuse.jpg", $Config.mScene, mtx );
+/*
 	
 	//	make a cube asset
 	var $Size = $Config.mFaceResolution/10;
 	var $Cube = new THREE.Mesh( new THREE.BoxGeometry( $Size, $Size, $Size ), new THREE.MeshNormalMaterial() );
 	$Cube.position.set( 1, 0, $Config.mFaceResolution / 4 );
 	$Config.mScene.add( $Cube );
-	
+*/
 
 }
 
@@ -1740,7 +1804,8 @@ function MakeLocalBox($Config)
 			//	load user's required pano
 			//LoadPano( $Config1 );
 			$Configs.push($Config1);
-			
+			MakeLocalBox( $Config1 );
+
 			
 			//	make a second config
 			if ( HasHashParam('dual') && GetElement("container_dual") )
