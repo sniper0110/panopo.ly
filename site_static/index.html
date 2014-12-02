@@ -17,7 +17,7 @@
 	uniform float PanoBottom;
 	uniform float PanoLeft;
 	uniform float PanoRight;
-	
+
 	void main()
 	{
 		vUv = uv;
@@ -1083,12 +1083,10 @@ function LoadYouFootPano($Config,$Filename)
 	var $AssetMeta = {};
 	
 
-	$Config.mPanoTop = 0.3;
-	$Config.mPanoBottom = 1.0;
-	$Config.mPanoLeft = 0.3;
-	$Config.mPanoRight = 0.7;
-	
-
+	$Config.mPanoTop = 0.215;
+	$Config.mPanoBottom = 0.75;
+	$Config.mPanoLeft = 0.2;
+	$Config.mPanoRight = 0.8;
 
 	$AssetMeta.Layout = 'equirect';
 //	$AssetMeta.Filename = $LocalUrlPrefix + $Filename;
@@ -1328,7 +1326,10 @@ function NewPano($Config,$MetaAsset)
 					var geometry = new THREE.SphereGeometry( Size, WidthSegments, HeightSegments );
 					//var geometry = new THREE.BoxGeometry( Size, Size, Size );
 					var mtx = new THREE.Matrix4().makeScale( -1, 1, 1 );
-					var rotMtx = new THREE.Matrix4().makeRotationY( Math.DegreesToRadians(-90) );
+					
+					//	gr: youfoot was off by 180 degrees... fix that in shader?
+					//var rotMtx = new THREE.Matrix4().makeRotationY( Math.DegreesToRadians(-90) );
+					var rotMtx = new THREE.Matrix4().makeRotationY( Math.DegreesToRadians(90) );
 					mtx.multiply( rotMtx );
 					geometry.applyMatrix( mtx );
 
