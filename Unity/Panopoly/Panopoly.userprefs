@@ -1,8 +1,11 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/FpsRender.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/MobileMovieTexture/MobileMovieManager.cs">
     <Files>
-      <File FileName="Assets/FpsRender.cs" Line="2" Column="26" />
+      <File FileName="Assets/MobileMovieTexture/MobileMovieManager.cs" Line="76" Column="17" />
+      <File FileName="Assets/FpsRender.cs" Line="1" Column="1" />
+      <File FileName="Assets/Geometry/SphereShader.shader" Line="1" Column="1" />
+      <File FileName="Assets/MobileMovieTexture/TestMobileTexture.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
