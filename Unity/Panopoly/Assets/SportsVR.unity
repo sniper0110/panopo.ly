@@ -948,33 +948,6 @@ Transform:
   - {fileID: 591097013}
   m_Father: {fileID: 0}
   m_RootOrder: 3
---- !u!1 &2003535412
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
-  m_Component:
-  - 4: {fileID: 2003535413}
-  m_Layer: 0
-  m_Name: MoviePlayer
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2003535413
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 2003535412}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.3061285, y: -.482573986, z: 4.37245035}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
 --- !u!1 &2068616906
 GameObject:
   m_ObjectHideFlags: 0
@@ -986,6 +959,7 @@ GameObject:
   - 33: {fileID: 2068616909}
   - 135: {fileID: 2068616908}
   - 23: {fileID: 2068616907}
+  - 114: {fileID: 2068616911}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -1044,3 +1018,15 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
+--- !u!114 &2068616911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2068616906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1014c7b501bd41b9a6972fba5ab3084, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  filename: stadium1024_h264.mp4

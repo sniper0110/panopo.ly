@@ -1,8 +1,9 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace />
-  <MonoDevelop.Ide.Workbench ActiveDocument="../../../../UnityAndroidVideoTexture/Assets/MediaCodec.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/SetTvText.cs">
     <Files>
-      <File FileName="../../../../UnityAndroidVideoTexture/Assets/MediaCodec.cs" Line="260" Column="3" />
+      <File FileName="Assets/TextDisplay/RenderText.cs" Line="30" Column="3" />
+      <File FileName="Assets/SetTvText.cs" Line="18" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

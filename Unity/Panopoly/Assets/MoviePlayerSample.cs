@@ -159,7 +159,7 @@ public class MoviePlayerSample : MonoBehaviour {
 		}
 		catch ( Exception e )
 		{
-			Debug.Log ("Error copying " + AssetFilename + " from streamed assets to persistent filename");
+			Debug.Log ("Error copying " + AssetFilename + " from streamed assets to persistent filename; " + e.Message );
 			return null;
 		}
 	}
